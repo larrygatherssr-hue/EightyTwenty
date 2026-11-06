@@ -5,6 +5,7 @@
  * every third-party listing discloses the 80/20 split and the fee math.
  */
 const { money, chargeBreakdown } = require('./fees');
+const { stripeMode } = require('./stripeClient');
 
 function esc(s) {
   return String(s == null ? '' : s)
@@ -32,7 +33,7 @@ nav{margin-bottom:20px;font-size:.95em}nav a{margin-right:14px}
 ${nav ? `<nav><a href="/">Marketplace</a><a href="/sell">Sell on the marketplace</a><a href="/seller/login">Seller dashboard</a><a href="/admin">Owner dashboard</a><a href="/terms">Terms</a><a href="/seller-agreement">Seller agreement</a></nav>` : ''}
 <h1>${esc(title)}</h1>
 ${body}
-<footer class="muted"><hr><p>EightyTwenty — sellers keep 80% of eligible sales; the platform keeps 20%. Payments processed by Stripe. Test mode.</p></footer>
+<footer class="muted"><hr><p>EightyTwenty — sellers keep 80% of eligible sales; the platform keeps 20%. Payments processed by Stripe. ${stripeMode() === 'live' ? 'Live mode.' : 'Test mode.'}</p></footer>
 </body></html>`;
 }
 

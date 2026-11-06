@@ -2,7 +2,7 @@
 /**
  * EightyTwenty — Node.js + Express + SQLite + Stripe.
  *
- * TEST MODE ONLY. See src/stripeClient.js: the process refuses live keys.
+ * Live mode enabled 2026-11-06 (owner-approved). See src/stripeClient.js.
  *
  * Architecture (per STRIPE-SPEC.md):
  *  - Accounts v2, Express-equivalent sellers; destination charges with
@@ -17,7 +17,7 @@ require('dotenv').config();
 const express = require('express');
 const crypto = require('crypto');
 const { db } = require('./db');
-const { initStripe, getStripe, stripeConfigured } = require('./stripeClient');
+const { initStripe, getStripe, stripeConfigured, stripeMode } = require('./stripeClient');
 const { chargeBreakdown, money, refundNetCents, calculateRevenueSplit } = require('./fees');
 const { totals } = require('./ledger');
 const views = require('./views');
@@ -108,14 +108,14 @@ function requireAdmin(req, res, next) {
 function stripeOrError(res) {
   if (!stripeConfigured()) {
     res.status(503).send(views.messagePage('Stripe not configured',
-      `<p>This step needs Stripe test mode. Set <code>STRIPE_SECRET_KEY</code> (sk_test_...) in <code>.env</code> and restart the server.</p><p><a href="/">← Back to the marketplace</a></p>`));
+      `<p>Stripe is not configured. Set <code>STRIPE_SECRET_KEY</code> in <code>.env</code> and restart the server.</p><p><a href="/">← Back to the marketplace</a></p>`));
     return null;
   }
   return getStripe();
 }
 
 /* ------------------------- public ------------------------- */
-app.get('/health', (req, res) => res.json({ ok: true, stripe: stripeConfigured(), mode: 'test' }));
+app.get('/health', (req, res) => res.json({ ok: true, stripe: stripeConfigured(), mode: stripeMode() }));
 
 app.get('/', (req, res) => {
   const listings = db.prepare("SELECT * FROM listings WHERE active = 1 ORDER BY owner DESC, id ASC").all();
@@ -565,5 +565,5 @@ app.use((err, req, res, _next) => {
 
 app.listen(PORT, () => {
   console.log(`EightyTwenty listening on port ${PORT} (BASE_URL=${BASE_URL})`);
-  console.log(`Stripe: ${stripeConfigured() ? 'test mode configured' : 'NOT configured — set sk_test_ keys in .env'}`);
+  console.log(`Stripe: ${stripeConfigured() ? stripeMode() + ' mode configured' : 'NOT configured — set Stripe keys in .env'}`);
 });
