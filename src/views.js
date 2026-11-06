@@ -109,9 +109,9 @@ function sellerLogin(error) {
 }
 
 function sellerDashboard(seller, sums, sales, subs, disputesList, refundsList, listings) {
-  const gate = seller.charges_enabled && seller.payouts_enabled
-    ? '<p><strong>Account status: active.</strong> Charges and payouts are enabled.</p>'
-    : `<div class="warn"><strong>Account status: onboarding incomplete.</strong> Charging and payouts are gated until Stripe confirms charges_enabled and payouts_enabled. <a href="/sell/resume/${seller.id}">Resume onboarding</a></div>`;
+  const gate = seller.transfers_status === 'active'
+    ? '<p><strong>Account status: active.</strong> Your Stripe transfers capability is active — you can sell.</p>'
+    : `<div class="warn"><strong>Account status: onboarding incomplete.</strong> Charging and payouts are gated until your Stripe transfers capability is active (currently: ${esc(seller.transfers_status || 'pending')}). <a href="/sell/resume/${seller.id}">Resume onboarding</a></div>`;
   const rows = sales.map((o) => `<tr><td>${o.id}</td><td>${esc(o.title || '')}</td><td>${money(o.amount_cents)}</td><td>${esc(o.status)}</td><td>${esc(o.created_at)}</td></tr>`).join('');
   const subRows = subs.map((s) => `<tr><td>${esc(s.stripe_subscription_id)}</td><td>${esc(s.buyer_email || '')}</td><td>${esc(s.status)}</td><td>${esc(s.current_period_end || '')}</td></tr>`).join('');
   const dispRows = disputesList.map((d) => `<tr><td>${esc(d.stripe_dispute_id)}</td><td>${money(d.amount_cents)}</td><td>${money(d.fee_cents)}</td><td>${esc(d.status)}</td><td>${esc(d.reason || '')}</td></tr>`).join('');
@@ -171,7 +171,7 @@ function adminLogin(error) {
 }
 
 function adminDashboard(sums, sellers, recent, statements, recurring) {
-  const sellerRows = sellers.map((s) => `<tr><td>${esc(s.name)}</td><td>${esc(s.email)}</td><td>${s.charges_enabled && s.payouts_enabled ? 'Active' : 'Onboarding'}</td><td>${esc(s.stripe_account_id || '—')}</td></tr>`).join('');
+  const sellerRows = sellers.map((s) => `<tr><td>${esc(s.name)}</td><td>${esc(s.email)}</td><td>${s.transfers_status === 'active' ? 'Active' : `Onboarding (${esc(s.transfers_status || 'pending')})`}</td><td>${esc(s.stripe_account_id || '—')}</td></tr>`).join('');
   const recentRows = recent.map((e) => `<tr><td>${e.id}</td><td>${esc(e.kind)}</td><td>${money(e.gross_cents)}</td><td>${money(e.platform_fee_cents)}</td><td>${money(e.seller_share_cents)}</td><td>${money(e.platform_net_cents)}</td><td>${esc(e.created_at)}</td></tr>`).join('');
   const stmtRows = statements.map((s) => `<tr><td>${esc(s.period)}</td><td>${money(s.gross)}</td><td>${money(s.platformFees)}</td><td>${money(s.sellerShare)}</td><td>${money(s.platformNet)}</td></tr>`).join('');
   return layout('Owner dashboard', `
@@ -243,7 +243,7 @@ function sellerAgreementPage() {
     <h2>3. Fees</h2>
     <p>Stripe's card-processing fee (2.9% + $0.30 per successful US card charge; +0.7% per subscription invoice) is paid by the platform out of its 20% commission. Connect costs ($2 per monthly active account, 0.25% + $0.25 per payout) are also paid by the platform. You are not charged anything to list or to join.</p>
     <h2>4. Payouts</h2>
-    <p>Your 80% share is transferred to your connected Stripe account automatically when a payment succeeds, and paid out to your bank on Stripe's payout schedule. Payouts are gated on your account showing charges_enabled and payouts_enabled in Stripe.</p>
+    <p>Your 80% share is transferred to your connected Stripe account automatically when a payment succeeds, and paid out to your bank on Stripe's payout schedule. Payouts are gated on your Stripe transfers capability being active.</p>
     <h2>5. Refund policy</h2>
     <p>Approved refunds are processed as: full refund to the customer, <code>reverse_transfer: true</code> (your share is pulled back to cover the refund), <code>refund_application_fee: false</code> (the platform keeps its commission). You can see every refund against your sales in your dashboard, including the platform's resulting net.</p>
     <h2>6. Disputes</h2>

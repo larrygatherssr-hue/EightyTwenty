@@ -27,6 +27,7 @@ CREATE TABLE IF NOT EXISTS sellers (
   stripe_account_id TEXT UNIQUE,
   charges_enabled INTEGER NOT NULL DEFAULT 0,
   payouts_enabled INTEGER NOT NULL DEFAULT 0,
+  transfers_status TEXT NOT NULL DEFAULT 'pending',
   dashboard_token TEXT NOT NULL UNIQUE,
   status TEXT NOT NULL DEFAULT 'onboarding',
   created_at TEXT NOT NULL DEFAULT (datetime('now'))
@@ -141,5 +142,14 @@ CREATE TABLE IF NOT EXISTS sessions (
   created_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
 `);
+
+// Lightweight migration: existing databases created before the Accounts v2
+// rewrite lack sellers.transfers_status. CREATE TABLE IF NOT EXISTS does not
+// add columns to an existing table, so add it explicitly when missing.
+// (charges_enabled / payouts_enabled are legacy v1 columns, kept for
+// backwards compatibility but no longer read by the app.)
+if (!db.prepare("SELECT 1 FROM pragma_table_info('sellers') WHERE name = 'transfers_status'").get()) {
+  db.exec("ALTER TABLE sellers ADD COLUMN transfers_status TEXT NOT NULL DEFAULT 'pending'");
+}
 
 module.exports = { db };

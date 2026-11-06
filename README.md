@@ -37,10 +37,12 @@ relationship.
 ## What is built
 
 - **Seller onboarding** — Stripe Accounts v2 (Express dashboard,
-  `fees_collector`/`losses_collector: application`, `card_payments` +
-  `stripe_balance.stripe_transfers` capabilities together). Hosted Account
-  Link flow; charging and payouts gated on `charges_enabled` AND
-  `payouts_enabled`; `account.updated` webhook keeps flags in sync.
+  `fees_collector`/`losses_collector: application`, `recipient`
+  configuration with `stripe_balance.stripe_transfers` requested — no
+  merchant capability). Hosted Account Link flow; charging and payouts
+  gated on the transfers capability status being `active`;
+  `account.updated` webhook syncs it when events arrive. Requires the
+  owner to enable Connect + Accounts v2 in the Stripe dashboard first.
 - **Listings** — sellers create/edit digital products (one-time, monthly,
   annual). Platform-owned listings keep 100%; the split applies only to
   third-party sellers.
@@ -120,8 +122,9 @@ stripe trigger charge.dispute.created
 - [ ] **Tax ID before Nov 30, 2026** — Stripe will pause payouts for
   Laurentius Colligit Family Trust Corp otherwise. Without payouts the
   marketplace cannot pay sellers. Add it in the Stripe dashboard.
-- [ ] **Enable Connect** on the platform Stripe account and complete
-  platform verification.
+- [ ] **Enable Connect AND Accounts v2** on the platform Stripe account
+  and complete platform verification. Both toggles are required before any
+  seller can onboard.
 - [ ] **Test mode end-to-end first:** onboarding, purchase, subscription
   renewal (`invoice.payment_succeeded`), refund with both flags, dispute,
   payout — all with test keys before any live transaction.
@@ -145,6 +148,7 @@ src/db.js           SQLite schema (sellers, listings, orders, subscriptions,
                     ledger_entries, refunds, disputes, payouts, processed_events)
 src/fees.js         Larry's exact split function + Stripe fee math + platform net
 src/ledger.js       Immutable ledger writers + totals + monthly statements
+src/onboarding.js   Accounts v2 seller onboarding + transfers-capability readiness
 src/stripeClient.js Stripe client with the TEST-MODE-ONLY guard
 src/webhooks.js     Signature-verified webhook handlers (both endpoints)
 src/views.js        Server-rendered HTML (full price + split disclosed everywhere)
@@ -160,9 +164,15 @@ render.yaml         Render Blueprint (web service + persistent disk for SQLite)
 - Webhook signature verification exercised with locally HMAC-signed test
   events (valid signature → 200 + ledger entry; bad signature → 400;
   duplicate `event.id` → acknowledged once).
-- **Not yet run against Stripe's test API** — no test keys were available in
-  this environment and the live key was deliberately not used. Before
-  launch, run the Stripe CLI triggers above with `sk_test_` keys and
-  confirm: onboarding link generation, checkout session creation,
-  `payment_intent.succeeded` ledger entry, renewal split, refund with both
-  flags, and dispute handling.
+- **Live test-mode verification (2026-11-06, full report at
+  `../VERIFICATION-2026-11-05.md`):** one-time checkout, subscription
+  first payment, refunds, fee math and webhooks all proven against the
+  live test API. Two blockers found and fixed: (A) onboarding rewritten
+  to the Accounts v2 API (Stripe SDK 21) — live verification of a real
+  seller onboarding is still pending the owner's Connect + Accounts v2
+  dashboard toggles; (B) the renewal handler now reads the subscription
+  id from `invoice.parent.subscription_details.subscription` (the old
+  `invoice.subscription` field is null under API 2026-10-28), resolves
+  the charge via the payment intent / customer charges, dedupes
+  `invoice.paid` vs `invoice.payment_succeeded`, and never double counts
+  the first payment. Renewal re-verified live — see the report.

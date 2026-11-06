@@ -23,6 +23,9 @@ const { totals } = require('./ledger');
 const views = require('./views');
 const { webhookRoute } = require('./webhooks');
 const { seed } = require('./seed');
+const {
+  sellerReady, createSellerAccount, createOnboardingLink, syncSellerFromStripe,
+} = require('./onboarding');
 
 initStripe();
 seed();
@@ -138,9 +141,9 @@ app.post('/checkout/:id', async (req, res) => {
   const stripe = stripeOrError(res);
   if (!stripe) return;
   const seller = listing.seller_id ? db.prepare('SELECT * FROM sellers WHERE id = ?').get(listing.seller_id) : null;
-  if (seller && !(seller.charges_enabled && seller.payouts_enabled)) {
+  if (seller && !sellerReady(seller)) {
     return res.status(403).send(views.messagePage('Seller not ready',
-      '<p>This seller is still finishing Stripe onboarding, so checkout is paused until their account shows charges and payouts enabled.</p><p><a href="/">← Back</a></p>'));
+      '<p>This seller is still finishing Stripe onboarding, so checkout is paused until their Stripe transfers capability is active.</p><p><a href="/">← Back</a></p>'));
   }
   const b = chargeBreakdown(listing.price_cents);
   const params = {
@@ -181,9 +184,9 @@ app.post('/subscribe/:id', async (req, res) => {
   const stripe = stripeOrError(res);
   if (!stripe) return;
   const seller = listing.seller_id ? db.prepare('SELECT * FROM sellers WHERE id = ?').get(listing.seller_id) : null;
-  if (seller && !(seller.charges_enabled && seller.payouts_enabled)) {
+  if (seller && !sellerReady(seller)) {
     return res.status(403).send(views.messagePage('Seller not ready',
-      '<p>This seller is still finishing Stripe onboarding, so subscriptions are paused until their account shows charges and payouts enabled.</p><p><a href="/">← Back</a></p>'));
+      '<p>This seller is still finishing Stripe onboarding, so subscriptions are paused until their Stripe transfers capability is active.</p><p><a href="/">← Back</a></p>'));
   }
   try {
     // Create (once) and cache a Stripe Price for this listing. Prices live on
@@ -290,36 +293,18 @@ app.post('/sell', async (req, res) => {
     seller = db.prepare('SELECT * FROM sellers WHERE id = ?').get(Number(info.lastInsertRowid));
   }
   try {
-    // Accounts v2, Express-equivalent shape (per STRIPE-SPEC.md §1–2):
-    // dashboard express; fees + losses collected by the application; the
-    // seller requests BOTH merchant (card_payments) and recipient
-    // (stripe_balance.stripe_transfers) capabilities together — requesting
-    // the transfers-only recipient capability alone fails.
+    // Accounts v2 (see src/onboarding.js): dashboard express; fees + losses
+    // collected by the application; recipient configuration only — the
+    // platform is the merchant of record, so sellers need no merchant /
+    // card_payments capability.
     let accountId = seller.stripe_account_id;
     if (!accountId) {
-      const account = await stripe.accounts.create({
-        country: 'US',
-        email: seller.email,
-        controller: {
-          stripe_dashboard: { type: 'express' },
-          fees: { payer: 'application' },
-          losses: { payments: 'application' },
-          requirement_collection: 'stripe',
-        },
-        capabilities: {
-          card_payments: { requested: true },
-          'stripe_balance.stripe_transfers': { requested: true },
-        },
-      });
+      const account = await createSellerAccount(stripe, seller);
       accountId = account.id;
       db.prepare('UPDATE sellers SET stripe_account_id = ? WHERE id = ?').run(accountId, seller.id);
+      seller.stripe_account_id = accountId;
     }
-    const link = await stripe.accountLinks.create({
-      account: accountId,
-      refresh_url: `${BASE_URL}/sell/refresh?seller=${seller.id}`,
-      return_url: `${BASE_URL}/sell/return?seller=${seller.id}`,
-      type: 'account_onboarding',
-    });
+    const link = await createOnboardingLink(stripe, seller, BASE_URL);
     return res.redirect(303, link.url);
   } catch (e) {
     console.error('[onboarding] Stripe error:', e.message);
@@ -333,12 +318,7 @@ app.get('/sell/refresh', async (req, res) => {
   const stripe = stripeOrError(res);
   if (!stripe) return;
   try {
-    const link = await stripe.accountLinks.create({
-      account: seller.stripe_account_id,
-      refresh_url: `${BASE_URL}/sell/refresh?seller=${seller.id}`,
-      return_url: `${BASE_URL}/sell/return?seller=${seller.id}`,
-      type: 'account_onboarding',
-    });
+    const link = await createOnboardingLink(stripe, seller, BASE_URL);
     return res.redirect(303, link.url);
   } catch (e) {
     return res.status(502).send(views.messagePage('Could not resume onboarding', `<p>${views.esc(e.message)}</p>`));
@@ -351,12 +331,7 @@ app.get('/sell/resume/:id', async (req, res) => {
   const stripe = stripeOrError(res);
   if (!stripe) return;
   try {
-    const link = await stripe.accountLinks.create({
-      account: seller.stripe_account_id,
-      refresh_url: `${BASE_URL}/sell/refresh?seller=${seller.id}`,
-      return_url: `${BASE_URL}/sell/return?seller=${seller.id}`,
-      type: 'account_onboarding',
-    });
+    const link = await createOnboardingLink(stripe, seller, BASE_URL);
     return res.redirect(303, link.url);
   } catch (e) {
     return res.status(502).send(views.messagePage('Could not resume onboarding', `<p>${views.esc(e.message)}</p>`));
@@ -366,24 +341,18 @@ app.get('/sell/resume/:id', async (req, res) => {
 app.get('/sell/return', async (req, res) => {
   const seller = db.prepare('SELECT * FROM sellers WHERE id = ?').get(req.query.seller);
   if (!seller) return res.redirect('/sell');
-  // Refresh capability flags from Stripe right now (webhooks also sync them).
+  // Refresh the transfers capability status from Stripe right now (webhooks
+  // also sync it when events arrive).
   if (stripeConfigured() && seller.stripe_account_id) {
-    try {
-      const acct = await getStripe().accounts.retrieve(seller.stripe_account_id);
-      db.prepare('UPDATE sellers SET charges_enabled = ?, payouts_enabled = ?, status = ? WHERE id = ?')
-        .run(acct.charges_enabled ? 1 : 0, acct.payouts_enabled ? 1 : 0,
-          acct.charges_enabled && acct.payouts_enabled ? 'active' : 'onboarding', seller.id);
-    } catch (e) {
-      console.warn('[onboarding return] could not retrieve account:', e.message);
-    }
+    await syncSellerFromStripe(getStripe(), seller);
   }
   const fresh = db.prepare('SELECT * FROM sellers WHERE id = ?').get(seller.id);
-  const ready = fresh.charges_enabled && fresh.payouts_enabled;
+  const ready = sellerReady(fresh);
   res.send(views.messagePage('Onboarding complete',
     `<p>Welcome aboard, ${views.esc(fresh.name)}.</p>
      <p>${ready
-      ? '<strong>Your account is active.</strong> Charges and payouts are enabled — you can create listings now.'
-      : 'Stripe is still reviewing your account. Charging and payouts stay gated until Stripe confirms them (the <code>account.updated</code> webhook updates this automatically).'}</p>
+      ? '<strong>Your account is active.</strong> Your Stripe transfers capability is active — you can create listings now.'
+      : 'Stripe is still reviewing your account. Charging and payouts stay gated until your Stripe transfers capability is active (the account.updated webhook updates this automatically).'}</p>
      <p><strong>Your seller dashboard token (save it — it is shown once):</strong> <code>${views.esc(fresh.dashboard_token)}</code></p>
      <p>Sign in at <a href="/seller/login">/seller/login</a> with your email and this token.</p>`));
 });
