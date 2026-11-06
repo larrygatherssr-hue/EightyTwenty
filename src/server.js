@@ -15,6 +15,7 @@
  */
 require('dotenv').config();
 const express = require('express');
+const path = require('path');
 const crypto = require('crypto');
 const { db } = require('./db');
 const { initStripe, getStripe, stripeConfigured, stripeMode } = require('./stripeClient');
@@ -58,6 +59,9 @@ app.post(
 
 app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
+
+// Serve the marketplace hero image and other public assets.
+app.use(express.static(path.join(__dirname, '..', 'public')));
 
 /* ------------------------- sessions ------------------------- */
 function parseCookies(req) {

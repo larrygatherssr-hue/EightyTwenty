@@ -62,6 +62,7 @@ function home(listings) {
       <p><a href="/listing/${l.id}">View product</a></p>
     </div>`).join('');
   return layout('Marketplace', `
+    <p><img src="/hero.jpg" alt="EightyTwenty — Premium Digital Products Marketplace: Learn, Invest, Grow, Thrive" style="width:100%;height:auto;border-radius:10px;display:block"></p>
     <p>Digital products from independent sellers. <strong>Sellers keep 80% of every eligible sale. The platform keeps 20%.</strong> That split applies to first purchases, repeat purchases, subscriptions and every renewal.</p>
     <div class="grid">${cards || '<p>No listings yet.</p>'}</div>
     <p><a href="/sell">Sell your digital product here</a> — onboarding takes a few minutes with Stripe.</p>`);
