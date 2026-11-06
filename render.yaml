@@ -26,7 +26,3 @@ services:
         sync: false
       - key: DATABASE_PATH
         value: /app/data/marketplace.db
-    disk:
-      name: marketplace-data
-      mountPath: /app/data
-      sizeGB: 1
