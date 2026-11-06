@@ -11,6 +11,7 @@
  */
 require('dotenv').config();
 const { db } = require('./db');
+const { CATALOG_LISTINGS } = require('./catalog-seed');
 
 const SEED_LISTINGS = [
   {
@@ -51,5 +52,38 @@ function seed() {
   return { created, skipped };
 }
 
-if (require.main === module) seed();
-module.exports = { seed, SEED_LISTINGS };
+/**
+ * Seed the 50 platform-owned catalog products (src/catalog-seed.js).
+ * Upsert by sku: a fresh database gets all 50; a database that already has
+ * a catalog row (e.g. a persisted live DB after a redeploy) gets its fields
+ * refreshed to the committed seed data instead of duplicating. The two
+ * Gumroad seed listings above are untouched (they have no sku).
+ * Runs on every boot, so a redeploy on the ephemeral free-plan disk restores
+ * all 50 listings automatically.
+ */
+function seedCatalog() {
+  const bySku = db.prepare('SELECT id FROM listings WHERE sku = ?');
+  const insert = db.prepare(`
+    INSERT INTO listings (seller_id, owner, sku, image_url, title, description, price_cents, billing, delivery_note, external_url, active)
+    VALUES (NULL, 'platform', ?, ?, ?, ?, ?, 'one_time', ?, NULL, 1)`);
+  const update = db.prepare(`
+    UPDATE listings SET image_url = ?, title = ?, description = ?, price_cents = ?,
+      billing = 'one_time', delivery_note = ?, external_url = NULL, active = 1, owner = 'platform'
+    WHERE sku = ?`);
+  let created = 0;
+  let updated = 0;
+  for (const l of CATALOG_LISTINGS) {
+    if (bySku.get(l.sku)) {
+      update.run(l.image_url, l.title, l.description, l.price_cents, l.delivery_note, l.sku);
+      updated++;
+    } else {
+      insert.run(l.sku, l.image_url, l.title, l.description, l.price_cents, l.delivery_note);
+      created++;
+    }
+  }
+  console.log(`Catalog seed complete: ${created} created, ${updated} updated.`);
+  return { created, updated };
+}
+
+if (require.main === module) { seed(); seedCatalog(); }
+module.exports = { seed, seedCatalog, SEED_LISTINGS };

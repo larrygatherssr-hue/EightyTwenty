@@ -18,6 +18,8 @@ const { db } = require('../src/db');
 const { calculateRevenueSplit, chargeBreakdown, processingFeeCents, refundNetCents, money } = require('../src/fees');
 const { handleEvent } = require('../src/webhooks');
 const { sellerReady } = require('../src/onboarding');
+const { seed, seedCatalog } = require('../src/seed');
+const { resolveDownload } = require('../src/downloads');
 
 let passed = 0;
 function check(name, cond) {
@@ -119,6 +121,79 @@ async function main() {
   // (g) invoice.created records nothing.
   await handleEvent(evt('evt_smoke_inv4', 'invoice.created', newShapeInvoice('in_smoke3', 'subscription_create')), 'platform');
   eq('invoice.created records nothing', ledgerCount(), 3);
+
+  // --- catalog seed: 50 platform products, durable via seed on every boot ---
+  const seed1 = seed();
+  eq('seed creates 2 gumroad listings', seed1.created, 2);
+  const cat1 = seedCatalog();
+  eq('catalog seed creates 50 listings', cat1.created, 50);
+  eq('50 catalog listings in db',
+    db.prepare("SELECT COUNT(*) AS n FROM listings WHERE owner = 'platform' AND sku IS NOT NULL").get().n, 50);
+  eq('catalog total $21,502',
+    db.prepare('SELECT COALESCE(SUM(price_cents),0) AS t FROM listings WHERE sku IS NOT NULL').get().t, 2150200);
+  const spot = db.prepare('SELECT price_cents, billing, owner, image_url FROM listings WHERE sku = ?').get('RE-06');
+  eq('RE-06 price $1,997', spot.price_cents, 199700);
+  eq('RE-06 one_time', spot.billing, 'one_time');
+  eq('RE-06 platform-owned', spot.owner, 'platform');
+  eq('RE-06 cover path', spot.image_url, '/covers/RE-06.jpg');
+  const cat2 = seedCatalog();
+  eq('catalog seed is idempotent', cat2.created, 0);
+  eq('still 50 after re-seed',
+    db.prepare('SELECT COUNT(*) AS n FROM listings WHERE sku IS NOT NULL').get().n, 50);
+  eq('2 gumroad listings untouched',
+    db.prepare("SELECT COUNT(*) AS n FROM listings WHERE external_url LIKE '%gumroad%'").get().n, 2);
+  check('no video-course claims in catalog descriptions',
+    !db.prepare("SELECT 1 FROM listings WHERE sku IS NOT NULL AND (description LIKE '%video course%' OR description LIKE '%video masterclass%')").get()
+    || db.prepare("SELECT description FROM listings WHERE sku IS NOT NULL AND (description LIKE '%video course%' OR description LIKE '%video masterclass%')").all()
+      .every((r) => /in (full )?written form|fully written|not a video course|video-course manual|video course companion/i.test(r.description)));
+
+  // --- download gate: only a proven payment for a catalog listing resolves ---
+  const dlDir = path.join(__dirname, '..', 'downloads');
+  fs.mkdirSync(dlDir, { recursive: true });
+  const scratchSku = 'TST-99';
+  const scratchFile = path.join(dlDir, `${scratchSku}.pdf`);
+  fs.writeFileSync(scratchFile, '%PDF-1.4 scratch');
+  try {
+    const scratch = db.prepare(
+      "INSERT INTO listings (seller_id, owner, sku, image_url, title, description, price_cents, billing) VALUES (NULL, 'platform', ?, '/covers/TST-99.jpg', 'Scratch', '', 9700, 'one_time')"
+    ).run(scratchSku);
+    const scratchId = Number(scratch.lastInsertRowid);
+    const fakeStripe = (status, listingId) => ({ checkout: { sessions: { retrieve: async (id) => ({ id, payment_status: status, metadata: { listing_id: String(listingId) } }) } } });
+    // (a) paid Stripe session resolves.
+    const r1 = await resolveDownload(db, { sessionId: 'cs_test_paid123', kind: 'pdf', stripe: fakeStripe('paid', scratchId) });
+    check('paid Stripe session resolves download', !!r1 && r1.listing.sku === scratchSku && r1.filePath === scratchFile);
+    // (b) unpaid Stripe session, no order, refuses.
+    const r2 = await resolveDownload(db, { sessionId: 'cs_test_unpaid123', kind: 'pdf', stripe: fakeStripe('unpaid', scratchId) });
+    eq('unpaid session refuses', r2, null);
+    // (c) local paid order resolves without Stripe.
+    db.prepare("INSERT INTO orders (listing_id, seller_id, buyer_email, type, amount_cents, status, stripe_checkout_session_id, stripe_payment_intent_id) VALUES (?, NULL, 'buyer@example.com', 'one_time', 9700, 'paid', 'cs_test_order123', 'pi_scratch')").run(scratchId);
+    const r3 = await resolveDownload(db, { sessionId: 'cs_test_order123', kind: 'pdf', stripe: null });
+    check('local paid order resolves download', !!r3 && r3.listing.sku === scratchSku);
+    // (d) unknown session refuses; malformed session id refuses.
+    const r4 = await resolveDownload(db, { sessionId: 'cs_test_nothing123', kind: 'pdf', stripe: null });
+    eq('unknown session refuses', r4, null);
+    const r5 = await resolveDownload(db, { sessionId: 'not-a-session', kind: 'pdf', stripe: null });
+    eq('malformed session id refuses', r5, null);
+    // (e) seed (non-catalog) listing never resolves even when paid.
+    const seedListingId = db.prepare("SELECT id FROM listings WHERE title = 'Smart Money Budget Planner'").get().id;
+    const r6 = await resolveDownload(db, { sessionId: 'cs_test_seed123', kind: 'pdf', stripe: fakeStripe('paid', seedListingId) });
+    eq('non-catalog listing refuses', r6, null);
+    // (f) two-letter SKUs (RE-*) resolve too — the sku pattern is 2-3 letters.
+    const reFile = path.join(dlDir, 'RE-99.pdf');
+    fs.writeFileSync(reFile, '%PDF-1.4 scratch re');
+    try {
+      const re = db.prepare(
+        "INSERT INTO listings (seller_id, owner, sku, image_url, title, description, price_cents, billing) VALUES (NULL, 'platform', 'RE-99', '/covers/RE-99.jpg', 'Scratch RE', '', 9700, 'one_time')"
+      ).run();
+      const reId = Number(re.lastInsertRowid);
+      const r7 = await resolveDownload(db, { sessionId: 'cs_test_re99', kind: 'pdf', stripe: fakeStripe('paid', reId) });
+      check('two-letter RE sku resolves download', !!r7 && r7.listing.sku === 'RE-99' && r7.filePath === reFile);
+    } finally {
+      fs.unlinkSync(reFile);
+    }
+  } finally {
+    fs.unlinkSync(scratchFile);
+  }
 
   console.log(`\n${passed} checks passed.`);
   fs.unlinkSync(tmpDb);

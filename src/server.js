@@ -23,13 +23,15 @@ const { chargeBreakdown, money, refundNetCents, calculateRevenueSplit } = requir
 const { totals } = require('./ledger');
 const views = require('./views');
 const { webhookRoute } = require('./webhooks');
-const { seed } = require('./seed');
+const { resolveDownload, downloadFilePath } = require('./downloads');
+const { seed, seedCatalog } = require('./seed');
 const {
   sellerReady, createSellerAccount, createOnboardingLink, syncSellerFromStripe,
 } = require('./onboarding');
 
 initStripe();
 seed();
+seedCatalog();
 
 const app = express();
 const PORT = Number(process.env.PORT || 3000);
@@ -237,6 +239,7 @@ app.post('/subscribe/:id', async (req, res) => {
 app.get('/checkout/success', async (req, res) => {
   const sessionId = req.query.session_id;
   let detail = '';
+  let paidListing = null;
   if (sessionId && stripeConfigured()) {
     try {
       const s = await getStripe().checkout.sessions.retrieve(sessionId);
@@ -246,8 +249,33 @@ app.get('/checkout/success', async (req, res) => {
         : null;
       detail = `<p>Payment status: <strong>${views.esc(s.payment_status)}</strong>.</p>`
         + (order ? `<p>Order #${order.id} — ${views.esc(order.status)}.</p>` : '<p>Your order is being confirmed; the receipt is on its way.</p>');
+      if (s.payment_status === 'paid' && s.metadata && s.metadata.listing_id) {
+        paidListing = db.prepare('SELECT * FROM listings WHERE id = ?').get(Number(s.metadata.listing_id));
+      }
     } catch (e) {
       detail = '<p>Your payment was submitted. If anything looks wrong, contact the marketplace.</p>';
+    }
+  }
+  if (!paidListing && sessionId) {
+    // Stripe unreachable or unconfigured: the webhook-created paid order is
+    // the fallback proof of payment for this checkout session.
+    const order = db.prepare("SELECT * FROM orders WHERE stripe_checkout_session_id = ? AND status = 'paid'").get(sessionId);
+    if (order) {
+      paidListing = db.prepare('SELECT * FROM listings WHERE id = ?').get(order.listing_id);
+      if (!detail) detail = '<p>Your payment was confirmed.</p>';
+    }
+  }
+  if (paidListing && paidListing.sku) {
+    // Download links are shown ONLY here, after payment is confirmed —
+    // never on the public listing page. The links are tied to this checkout
+    // session; /download re-verifies the payment before serving the file.
+    const pdf = downloadFilePath(paidListing.sku, 'pdf');
+    const zip = downloadFilePath(paidListing.sku, 'zip');
+    if (pdf || zip) {
+      detail += `<div class="fee"><p><strong>Your download is ready — ${views.esc(paidListing.title)}.</strong></p>`
+        + (pdf ? `<p><a href="/download/${views.esc(sessionId)}?file=pdf"><button>Download the PDF</button></a></p>` : '')
+        + (zip ? `<p><a href="/download/${views.esc(sessionId)}?file=zip"><button>Download the full package (ZIP — PDF, workbook, templates, cover)</button></a></p>` : '')
+        + '<p class="muted">Save these links — they are your copy of the download. If a link stops working, contact the marketplace with your order number.</p></div>';
     }
   }
   res.send(views.messagePage('Thank you', `${detail || '<p>Your payment was submitted.</p>'}<p><a href="/">← Back to the marketplace</a></p>`));
@@ -255,6 +283,23 @@ app.get('/checkout/success', async (req, res) => {
 
 app.get('/checkout/cancelled', (req, res) => {
   res.send(views.messagePage('Checkout cancelled', '<p>No charge was made.</p><p><a href="/">← Back to the marketplace</a></p>'));
+});
+
+/**
+ * Buyer file delivery. Proves a real payment for the checkout session
+ * (Stripe session paid, or a local paid order row) before serving the
+ * product file — see src/downloads.js. Anything unverified gets a plain
+ * 404 with no hint about whether the session exists.
+ */
+app.get('/download/:sessionId', async (req, res) => {
+  const kind = req.query.file === 'zip' ? 'zip' : 'pdf';
+  const stripe = stripeConfigured() ? getStripe() : null;
+  const result = await resolveDownload(db, { sessionId: req.params.sessionId, kind, stripe });
+  if (!result) {
+    return res.status(404).send(views.messagePage('Download not found',
+      '<p>That download link is not valid, or the payment has not completed yet. If you just paid, wait a moment and try again from your receipt page — or contact the marketplace with your order number.</p><p><a href="/">← Back to the marketplace</a></p>'));
+  }
+  return res.download(result.filePath, `${result.listing.sku}.${kind}`);
 });
 
 // Customer portal: the platform manages subscriptions (Express sellers cannot).

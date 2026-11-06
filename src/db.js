@@ -37,6 +37,8 @@ CREATE TABLE IF NOT EXISTS listings (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   seller_id INTEGER REFERENCES sellers(id),
   owner TEXT NOT NULL DEFAULT 'seller',           -- 'seller' or 'platform'
+  sku TEXT,                                        -- catalog SKU, e.g. RE-01 (platform catalog products)
+  image_url TEXT,                                  -- cover image path, e.g. /covers/RE-01.jpg
   title TEXT NOT NULL,
   description TEXT NOT NULL DEFAULT '',
   price_cents INTEGER NOT NULL,
@@ -143,13 +145,21 @@ CREATE TABLE IF NOT EXISTS sessions (
 );
 `);
 
-// Lightweight migration: existing databases created before the Accounts v2
-// rewrite lack sellers.transfers_status. CREATE TABLE IF NOT EXISTS does not
-// add columns to an existing table, so add it explicitly when missing.
+// Lightweight migrations: existing databases created before a column was
+// added. CREATE TABLE IF NOT EXISTS does not add columns to an existing
+// table, so add them explicitly when missing.
 // (charges_enabled / payouts_enabled are legacy v1 columns, kept for
 // backwards compatibility but no longer read by the app.)
 if (!db.prepare("SELECT 1 FROM pragma_table_info('sellers') WHERE name = 'transfers_status'").get()) {
   db.exec("ALTER TABLE sellers ADD COLUMN transfers_status TEXT NOT NULL DEFAULT 'pending'");
+}
+// Catalog listings (2026-11-06 upload): sku maps a listing to its
+// downloadable files in downloads/<SKU>.pdf|zip; image_url is the cover.
+if (!db.prepare("SELECT 1 FROM pragma_table_info('listings') WHERE name = 'sku'").get()) {
+  db.exec('ALTER TABLE listings ADD COLUMN sku TEXT');
+}
+if (!db.prepare("SELECT 1 FROM pragma_table_info('listings') WHERE name = 'image_url'").get()) {
+  db.exec('ALTER TABLE listings ADD COLUMN image_url TEXT');
 }
 
 module.exports = { db };

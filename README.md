@@ -72,9 +72,25 @@ relationship.
   required payments disclosure, the **adult-content ban (non-negotiable —
   Stripe prohibits adult content including AI-generated adult content)**,
   and exclusion of CBD, dating, crypto and crowdfunding.
-- **Seed data** — the two platform-owned listings only: Smart Money Budget
-  Planner ($7) and Daily Wins Habit Tracker ($5). No fake sellers, no fake
-  sales; the ledger starts empty.
+- **Seed data** — the two platform-owned Gumroad listings (Smart Money
+  Budget Planner ($7) and Daily Wins Habit Tracker ($5)) **plus the 50
+  platform-owned catalog products** (`src/catalog-seed.js`, generated from
+  the product folders by `tools/generate-catalog-seed.js`; total value
+  $21,502). The catalog listings check out on the marketplace itself via
+  Stripe (platform keeps 100%) and deliver instantly as files — see
+  "Buyer file delivery" below. No fake sellers, no fake sales; the ledger
+  starts empty.
+- **Buyer file delivery** — each catalog product ships as files committed
+  in the repo: `downloads/<SKU>.pdf` (course + workbook) and
+  `downloads/<SKU>.zip` (full package: PDF, workbook, templates, cover),
+  built by `tools/build-products.py` from the product folders. Covers live
+  at `public/covers/<SKU>.jpg` and show on the homepage and listing pages.
+  Files are served only through `GET /download/:checkoutSessionId`, which
+  proves a real payment first (paid Stripe session, or a local paid order
+  row); the listing page never links to them. The repo is the durable
+  store: on Render's free plan the DB and disk are ephemeral, but a
+  redeploy checks the repo out again, and `seed()`/`seedCatalog()` restore
+  all 52 listings on boot.
 
 ## Run it locally
 
@@ -82,7 +98,7 @@ relationship.
 cd ~/workspace/marketplace/app
 npm install
 cp .env.example .env        # fill in sk_test_ / pk_test_ keys + webhook secrets
-npm run seed                # idempotent; seeds the two platform listings
+npm run seed                # idempotent; seeds the 2 Gumroad listings + 50 catalog products
 npm start                   # http://localhost:3000
 ```
 
@@ -152,7 +168,12 @@ src/onboarding.js   Accounts v2 seller onboarding + transfers-capability readine
 src/stripeClient.js Stripe client with the TEST-MODE-ONLY guard
 src/webhooks.js     Signature-verified webhook handlers (both endpoints)
 src/views.js        Server-rendered HTML (full price + split disclosed everywhere)
-src/seed.js         Platform-owned listings only (planner $7, tracker $5)
+src/seed.js         Platform-owned listings (planner $7, tracker $5) + 50 catalog products
+src/catalog-seed.js Generated catalog data (50 products) — regenerate, do not hand-edit
+src/downloads.js    Buyer file delivery: payment-verified /download/:sessionId
+downloads/          Buyer files, committed: <SKU>.pdf + <SKU>.zip per catalog product
+public/covers/      Catalog cover thumbnails (<SKU>.jpg), served statically
+tools/              Build scripts: generate-catalog-seed.js, build-products.py, fix-video-claims.py
 Dockerfile          Node 24, production image
 render.yaml         Render Blueprint (web service + persistent disk for SQLite)
 ```

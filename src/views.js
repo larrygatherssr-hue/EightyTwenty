@@ -55,6 +55,7 @@ function splitBox(listing) {
 function home(listings) {
   const cards = listings.map((l) => `
     <div class="card">
+      ${l.image_url ? `<p><a href="/listing/${l.id}"><img src="${esc(l.image_url)}" alt="${esc(l.title)} cover" style="width:100%;height:auto;border-radius:8px;display:block"></a></p>` : ''}
       <h3><a href="/listing/${l.id}">${esc(l.title)}</a></h3>
       <p>${esc(l.description.slice(0, 160))}${l.description.length > 160 ? '…' : ''}</p>
       <p><strong>${money(l.price_cents)}</strong> ${l.billing === 'one_time' ? 'one-time' : `per ${l.billing === 'monthly' ? 'month' : 'year'}`}</p>
@@ -76,6 +77,7 @@ function listingDetail(l, sellerName) {
       ? `<form method="post" action="/subscribe/${l.id}"><button type="submit">Subscribe — ${money(l.price_cents)} per ${l.billing === 'monthly' ? 'month' : 'year'}</button></form>`
       : `<form method="post" action="/checkout/${l.id}"><button type="submit">Buy now — ${money(l.price_cents)}</button></form>`);
   return layout(l.title, `
+    ${l.image_url ? `<p><img src="${esc(l.image_url)}" alt="${esc(l.title)} cover" style="width:100%;max-width:480px;height:auto;border-radius:10px;display:block"></p>` : ''}
     <p class="muted">${l.owner === 'platform' ? 'Sold by the marketplace' : `Sold by ${esc(sellerName || 'an independent seller')}`}</p>
     <p>${esc(l.description)}</p>
     <p><strong>Price: ${money(l.price_cents)}</strong> ${isSub ? `per ${l.billing === 'monthly' ? 'month' : 'year'}, renewing automatically until cancelled` : 'one-time'}</p>
