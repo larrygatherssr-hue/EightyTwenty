@@ -46,6 +46,75 @@ async function exactProcessingFee(chargeId) {
   return null;
 }
 
+/** Coerce a Stripe id-or-object field to its id string (or null). */
+function idOf(value) {
+  if (typeof value === 'string') return value;
+  if (value && typeof value === 'object' && typeof value.id === 'string') return value.id;
+  return null;
+}
+
+/**
+ * Resolve the charge that paid an invoice, for the exact processing fee.
+ * Under API version 2026-10-28 the invoice carries NO payment reference
+ * (invoice.charge, invoice.payment_intent and even charge.invoice are all
+ * null), so the resolver tries, in order:
+ *  1. invoice.payment_intent → PaymentIntent.latest_charge (older versions)
+ *  2. invoice.charge directly (older versions)
+ *  3. the customer's charges: same amount, created within 10 minutes of the
+ *     invoice's paid_at (invoice payments land within seconds of paid_at)
+ * Returns a charge id, or null when it cannot be resolved — callers then
+ * fall back to the fee estimate.
+ */
+async function resolveInvoiceChargeId(invoice, eventCreated) {
+  if (!stripeConfigured()) return null;
+  const stripe = getStripe();
+  const piId = idOf(invoice.payment_intent);
+  if (piId) {
+    try {
+      const pi = await stripe.paymentIntents.retrieve(piId);
+      const chargeId = idOf(pi.latest_charge)
+        || (pi.charges && pi.charges.data && pi.charges.data[0] && pi.charges.data[0].id);
+      if (chargeId) return chargeId;
+    } catch (e) {
+      console.warn('[webhook] could not retrieve payment intent', piId, '-', e.message);
+    }
+  }
+  const directCharge = idOf(invoice.charge);
+  if (directCharge) return directCharge;
+  const paidAt = (invoice.status_transitions && invoice.status_transitions.paid_at)
+    || eventCreated || null;
+  const customerId = idOf(invoice.customer);
+  if (customerId && paidAt) {
+    try {
+      const list = await stripe.charges.list({ customer: customerId, limit: 10 });
+      let best = null;
+      let bestDelta = Infinity;
+      for (const c of list.data || []) {
+        if (!c.paid || c.amount !== invoice.amount_paid) continue;
+        const delta = Math.abs(c.created - paidAt);
+        if (delta <= 600 && delta < bestDelta) { best = c; bestDelta = delta; }
+      }
+      if (best) return best.id;
+    } catch (e) {
+      console.warn('[webhook] could not list charges for', customerId, '-', e.message);
+    }
+  }
+  return null;
+}
+
+/**
+ * Resolve the subscription id for an invoice.
+ * Under API version 2026-10-28 invoice.subscription is null; the id lives at
+ * invoice.parent.subscription_details.subscription. Falls back to the old
+ * field for older API versions.
+ */
+function resolveInvoiceSubscriptionId(invoice) {
+  const fromParent = invoice.parent
+    && invoice.parent.subscription_details
+    && invoice.parent.subscription_details.subscription;
+  return idOf(fromParent) || idOf(invoice.subscription);
+}
+
 function findOrderByPI(piId) {
   return db.prepare('SELECT * FROM orders WHERE stripe_payment_intent_id = ?').get(piId);
 }
@@ -59,6 +128,17 @@ async function handlePaymentIntentSucceeded(event) {
   const order = findOrderByPI(pi.id);
   if (!order) {
     console.warn('[webhook] payment_intent.succeeded with no matching order:', pi.id);
+    return;
+  }
+  if (idOf(pi.invoice) || order.type === 'subscription') {
+    // Subscription invoice payment. Billing revenue is recorded exactly once
+    // via invoice.payment_succeeded / invoice.paid (see
+    // handleInvoicePaymentSucceeded); recording it here too would double
+    // count the first payment. (pi.invoice is null under API 2026-10-28, so
+    // the order's type is the reliable discriminator.) Just mark the order paid.
+    if (order.status !== 'paid') {
+      db.prepare("UPDATE orders SET status = 'paid' WHERE id = ?").run(order.id);
+    }
     return;
   }
   if (order.status === 'paid') return; // already recorded (e.g. duplicate delivery)
@@ -76,7 +156,7 @@ async function handlePaymentIntentSucceeded(event) {
 
 async function handleInvoicePaymentSucceeded(event) {
   const invoice = event.data.object;
-  const subId = typeof invoice.subscription === 'string' ? invoice.subscription : invoice.subscription && invoice.subscription.id;
+  const subId = resolveInvoiceSubscriptionId(invoice);
   const sub = subId
     ? db.prepare('SELECT * FROM subscriptions WHERE stripe_subscription_id = ?').get(subId)
     : null;
@@ -86,15 +166,34 @@ async function handleInvoicePaymentSucceeded(event) {
   }
   const amountPaid = invoice.amount_paid;
   if (!Number.isInteger(amountPaid) || amountPaid <= 0) return;
-  const chargeId = invoice.charge;
-  const exactFee = await exactProcessingFee(chargeId);
+  // Dedupe: Stripe sends BOTH invoice.paid and invoice.payment_succeeded for
+  // the same payment, and both route here. One ledger entry per invoice.
+  const dup = db.prepare(
+    "SELECT 1 FROM ledger_entries WHERE kind IN ('sale', 'renewal') AND description LIKE ?"
+  ).get(`%(invoice ${invoice.id})%`);
+  if (dup) return;
   const order = findOrderBySubscription(subId);
+  // First invoice: the initial payment is normally recorded by
+  // payment_intent.succeeded (or, when the PI carries an invoice link, by
+  // this handler). If a sale entry already exists for the order, do not
+  // record the same payment a second time.
+  if (invoice.billing_reason === 'subscription_create' && order) {
+    const saleExists = db.prepare(
+      "SELECT 1 FROM ledger_entries WHERE order_id = ? AND kind = 'sale'"
+    ).get(order.id);
+    if (saleExists) return;
+  }
+  const chargeId = await resolveInvoiceChargeId(invoice, event.created);
+  const exactFee = await exactProcessingFee(chargeId);
   recordSale({
     eventId: event.id, orderId: order ? order.id : null, sellerId: sub.seller_id,
     grossCents: amountPaid, processingFeeCents: exactFee,
     billing: true, kind: 'renewal',
     description: `subscription renewal — ${subId} (invoice ${invoice.id})`,
   });
+  if (order && order.status !== 'paid') {
+    db.prepare("UPDATE orders SET status = 'paid' WHERE id = ?").run(order.id);
+  }
 }
 
 async function handleChargeRefunded(event) {
@@ -226,18 +325,13 @@ function handlePayout(event) {
 
 async function syncSellerFromAccount(accountId) {
   if (!stripeConfigured() || !accountId) return;
-  try {
-    const stripe = getStripe();
-    const acct = await stripe.accounts.retrieve(accountId);
-    db.prepare('UPDATE sellers SET charges_enabled = ?, payouts_enabled = ? WHERE stripe_account_id = ?')
-      .run(acct.charges_enabled ? 1 : 0, acct.payouts_enabled ? 1 : 0, accountId);
-    const s = db.prepare('SELECT charges_enabled, payouts_enabled FROM sellers WHERE stripe_account_id = ?').get(accountId);
-    if (s && s.charges_enabled && s.payouts_enabled) {
-      db.prepare("UPDATE sellers SET status = 'active' WHERE stripe_account_id = ?").run(accountId);
-    }
-  } catch (e) {
-    console.warn('[webhook] could not sync account', accountId, '-', e.message);
-  }
+  const seller = db.prepare('SELECT * FROM sellers WHERE stripe_account_id = ?').get(accountId);
+  if (!seller) return;
+  // Accounts v2: readiness is the transfers capability status, not the v1
+  // charges_enabled / payouts_enabled flags. The helper logs and no-ops when
+  // Stripe cannot be reached (e.g. Accounts v2 not enabled yet).
+  const { syncSellerFromStripe } = require('./onboarding');
+  await syncSellerFromStripe(getStripe(), seller);
 }
 
 /**
@@ -326,6 +420,12 @@ async function handleEvent(event, source) {
       break;
     case 'account.updated':
     case 'capability.updated': {
+      // Best-effort sync. NOTE: for Accounts v2 sellers Stripe primarily
+      // delivers capability changes as v2 thin events (v2.core.account.updated)
+      // to event destinations, not to this webhook endpoint; the seller's
+      // status is authoritatively refreshed when they return from onboarding
+      // (/sell/return) and when they resume it. This handler still syncs
+      // whenever a v1-style account event does arrive.
       const accountId = event.account || (event.data.object && event.data.object.account) || null;
       if (accountId) await syncSellerFromAccount(accountId);
       break;
