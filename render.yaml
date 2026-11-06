@@ -1,0 +1,32 @@
+# EightyTwenty — Render deploy config (one-click via Render Blueprint).
+# Owner must set the env vars in the Render dashboard (never commit secrets).
+services:
+  - type: web
+    name: eightytwenty
+    env: docker
+    dockerfilePath: ./Dockerfile
+    plan: free
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 3000
+      - key: BASE_URL
+        sync: false
+      - key: STRIPE_SECRET_KEY
+        sync: false
+      - key: STRIPE_PUBLISHABLE_KEY
+        sync: false
+      - key: STRIPE_WEBHOOK_SECRET
+        sync: false
+      - key: STRIPE_CONNECT_WEBHOOK_SECRET
+        sync: false
+      - key: ADMIN_PASSWORD
+        sync: false
+      - key: DATABASE_PATH
+        value: /app/data/marketplace.db
+    disk:
+      name: marketplace-data
+      mountPath: /app/data
+      sizeGB: 1
