@@ -31,7 +31,12 @@ function initStripe() {
     process.exit(1);
   }
 
-  stripe = require('stripe')(secret);
+  // Use the fetch-based HTTP client: the SDK's default Node client ignores
+  // proxy env vars, so API calls fail in proxied environments (this sandbox
+  // routes egress through a proxy; Render and normal networks are direct).
+  // The fetch client honours NODE_USE_ENV_PROXY and works in both cases.
+  const Stripe = require('stripe');
+  stripe = new Stripe(secret, { httpClient: Stripe.createFetchHttpClient() });
   console.log('[stripe] Test-mode client ready.');
   return stripe;
 }

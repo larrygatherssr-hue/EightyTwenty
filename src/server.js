@@ -191,11 +191,15 @@ app.post('/subscribe/:id', async (req, res) => {
     // account with transfer_data[destination] + application_fee_percent: 20.
     let priceId = listing.stripe_price_id;
     if (!priceId) {
+      // NOTE (verification 2026-11-06): Stripe's Prices API rejects
+      // product_data.description in the current API version ("Received
+      // unknown parameter: product_data[description]") — name only here.
+      // (Checkout's inline price_data still accepts a description.)
       const price = await stripe.prices.create({
         currency: 'usd',
         unit_amount: listing.price_cents,
         recurring: { interval: listing.billing === 'monthly' ? 'month' : 'year' },
-        product_data: { name: listing.title, description: listing.description.slice(0, 200) },
+        product_data: { name: listing.title },
       });
       priceId = price.id;
       db.prepare('UPDATE listings SET stripe_price_id = ? WHERE id = ?').run(priceId, listing.id);
@@ -515,9 +519,14 @@ app.post('/admin/refunds', requireAdmin, async (req, res) => {
     // Policy (seller agreement §5): full refund, reverse_transfer: true,
     // refund_application_fee: false. The seller eats the refund; the
     // platform keeps its commission; Stripe keeps the processing fee.
+    // NOTE (verification 2026-11-06): reverse_transfer only applies when a
+    // transfer exists (seller order). Platform-owned listings have no
+    // transfer — Stripe rejects reverse_transfer: true for them ("does not
+    // have an associated transfer"), so it must be false there.
+    const reverseTransfer = !!order.seller_id;
     const refund = await stripe.refunds.create({
       payment_intent: order.stripe_payment_intent_id,
-      reverse_transfer: true,
+      reverse_transfer: reverseTransfer,
       refund_application_fee: false,
     });
     const sale = db.prepare(
@@ -531,8 +540,8 @@ app.post('/admin/refunds', requireAdmin, async (req, res) => {
       processingFeeCents: sale ? sale.processing_fee_cents : 0,
     });
     db.prepare(`INSERT INTO refunds (order_id, stripe_refund_id, amount_cents, reverse_transfer,
-      refund_application_fee, platform_net_after_cents, reason) VALUES (?, ?, ?, 1, 0, ?, ?)`)
-      .run(order.id, refund.id, refund.amount, platformNetAfter, (req.body.reason || '').trim());
+      refund_application_fee, platform_net_after_cents, reason) VALUES (?, ?, ?, ?, 0, ?, ?)`)
+      .run(order.id, refund.id, refund.amount, reverseTransfer ? 1 : 0, platformNetAfter, (req.body.reason || '').trim());
     const done = `Refund ${refund.id} issued for order #${order.id} (${money(refund.amount)}). Platform net on this order after the refund: ${money(platformNetAfter)} (processing fee not returned by Stripe). The charge.refunded webhook will record the ledger entry.`;
     return res.send(views.adminRefunds(orders, null, done));
   } catch (e) {
