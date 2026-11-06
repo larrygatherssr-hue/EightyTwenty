@@ -2,11 +2,28 @@
 /**
  * Seller onboarding on the Accounts v2 API (Stripe SDK 21+).
  *
- * Verified shape (live test API, 2026-11-06): the request below passes
- * field validation and fails ONLY on enablement ("Accounts v2 is not
- * enabled for your livemode merchant") until the owner enables Connect +
- * Accounts v2 in the Stripe dashboard. Do NOT attempt to enable either
- * from code — both are owner-only dashboard toggles.
+ * Verified shape (live test API, 2026-11-06): the request below creates a
+ * seller account once the owner has enabled Connect + Accounts v2 AND
+ * acknowledged negative balance liability ("Platform manages losses") in the
+ * platform profile. Without the liability acknowledgement the create fails
+ * with `account_creation_losses_collector_unavailable`; without the
+ * toggles it fails with `non_connect_platform_accounts_v2_access_blocked`.
+ * Do NOT attempt to enable any of these from code — all are owner-only
+ * dashboard steps.
+ *
+ * Shape (per STRIPE-SPEC.md §1–2, confirmed live 2026-11-06):
+ *  - identity.country: 'us' (required before any configuration is set)
+ *  - dashboard: 'express' (string)
+ *  - defaults.responsibilities.fees_collector / losses_collector: 'application'
+ *  - configuration.recipient.capabilities.stripe_balance.stripe_transfers.requested: true
+ *  - configuration.merchant.capabilities.card_payments.requested: true
+ *    (REQUIRED alongside stripe_transfers for this platform — the live API
+ *    rejects transfers-only with `capability_not_available_without_other_capability`
+ *    unless Stripe approves the platform for transfers-only accounts.
+ *    card_payments is requested but NEVER used: the platform stays merchant
+ *    of record on destination charges, so the seller's card_payments
+ *    capability carries no charges. Do NOT drop it to "simplify" — account
+ *    creation fails without it.)
  *
  * Shape (per STRIPE-SPEC.md §1–2):
  *  - dashboard: 'express' (string)
@@ -38,6 +55,7 @@ async function createSellerAccount(stripe, seller) {
     contact_email: seller.email,
     display_name: seller.name,
     dashboard: 'express',
+    identity: { country: 'us' },
     defaults: {
       responsibilities: {
         fees_collector: 'application',
@@ -50,6 +68,13 @@ async function createSellerAccount(stripe, seller) {
           stripe_balance: {
             stripe_transfers: { requested: true },
           },
+        },
+      },
+      // Required alongside stripe_transfers for this platform (see header).
+      // Requested but never used — the platform stays merchant of record.
+      merchant: {
+        capabilities: {
+          card_payments: { requested: true },
         },
       },
     },
