@@ -1,0 +1,511 @@
+{
+  "products": [
+    {
+      "sku": "BEA-01",
+      "name": "The Beauty Business Launch Academy",
+      "pdf_bytes": 179679,
+      "pdf_pages": 41,
+      "zip_bytes": 1390180,
+      "cover_jpg_bytes": 105712,
+      "pdf_sha256": "7cf02b0be1fc0c379edc9e75ef78f586bb8f199570ceef3d26067dd1fcb8694a",
+      "zip_sha256": "61c43b4b2cba6e7aade9b34940065090d5c6ea71206575be9d6b5256f160c4a5"
+    },
+    {
+      "sku": "BEA-02",
+      "name": "Formulate & Sell: Natural Skincare Product Development Masterclass",
+      "pdf_bytes": 290224,
+      "pdf_pages": 40,
+      "zip_bytes": 743072,
+      "cover_jpg_bytes": 213644,
+      "pdf_sha256": "b4fc486a2f5a6ddcae0119e1da40c037bbfd5f43b51844c5e13ccb6099202f09",
+      "zip_sha256": "d6079c73a72a16c91bb87f93f549f5c6c86c137dad1d600205fa6637bb08af16"
+    },
+    {
+      "sku": "BEA-03",
+      "name": "Beauty Brand Launch & Monetization Playbook",
+      "pdf_bytes": 191608,
+      "pdf_pages": 37,
+      "zip_bytes": 1793443,
+      "cover_jpg_bytes": 120011,
+      "pdf_sha256": "19b5d4f6ea184d4f5f0e5ce519c220921ec25804c10f7e463e2e41e27ee6c095",
+      "zip_sha256": "d60c2ed9d0a7ec4dba6cc96c8c50c910d950e83f362f750392bf5147d45f2ca8"
+    },
+    {
+      "sku": "BEA-04",
+      "name": "Salon Profit System: Management, Staff & Retention",
+      "pdf_bytes": 168687,
+      "pdf_pages": 39,
+      "zip_bytes": 1405837,
+      "cover_jpg_bytes": 98171,
+      "pdf_sha256": "62f931750b8b2c9f27e50cc9f3a110580eed7e32ef1179531390368dc08ed366",
+      "zip_sha256": "4cd7e09252d277fec882d866e9a43413baab2d632cdc8af12febacb107a09b08"
+    },
+    {
+      "sku": "BEA-05",
+      "name": "Skin Science & Signature Routines: Evidence-Based Skincare Education",
+      "pdf_bytes": 273892,
+      "pdf_pages": 59,
+      "zip_bytes": 1800978,
+      "cover_jpg_bytes": 154993,
+      "pdf_sha256": "fcb48bd500532aa54a80b103fb54342caf1d35ec8c4c8d6fca59ec0e8e853a1e",
+      "zip_sha256": "472bdfb71bb250893da85197af3a06c108a0a34254e03ecfc6e5d26e57eb744c"
+    },
+    {
+      "sku": "BEA-06",
+      "name": "Holistic Wellness Coach Foundations",
+      "pdf_bytes": 169880,
+      "pdf_pages": 40,
+      "zip_bytes": 1347533,
+      "cover_jpg_bytes": 97720,
+      "pdf_sha256": "50bc1505b646e251ad9c7fec0898472660c9b9c0abe1dadd9afcda8c2b874ffa",
+      "zip_sha256": "8cc777e6748ed62f59fc606b62de56da96fcf0b6f246d74ca7d73fc6a0f3e52e"
+    },
+    {
+      "sku": "BEA-07",
+      "name": "Spa & Wellness Business Builder",
+      "pdf_bytes": 236532,
+      "pdf_pages": 33,
+      "zip_bytes": 2726652,
+      "cover_jpg_bytes": 179506,
+      "pdf_sha256": "854ca0bda56b258ff62e037c0a001b89693c84c13a7e3876eb1cbdd849afadd5",
+      "zip_sha256": "d6f1a3fe04070e0441f752c1cd31347c7518433237fb39817a6be415a6c3b529"
+    },
+    {
+      "sku": "BEA-08",
+      "name": "Healthy Hair Academy: Care, Repair & Treatment Routines",
+      "pdf_bytes": 258100,
+      "pdf_pages": 47,
+      "zip_bytes": 2409289,
+      "cover_jpg_bytes": 166033,
+      "pdf_sha256": "5aa294edb431db533019869bfc49c10201007896c01acfb1238f55ae05cf3832",
+      "zip_sha256": "d73baa08703b04b91cda44d7c32126fc3295a26ed00d016949c7a02428edce77"
+    },
+    {
+      "sku": "BEA-09",
+      "name": "Makeup Artist to Business Owner: Bridal, Freelance & Studio Growth",
+      "pdf_bytes": 183359,
+      "pdf_pages": 34,
+      "zip_bytes": 1663373,
+      "cover_jpg_bytes": 118787,
+      "pdf_sha256": "d1300441dd2ecc66ad216e645de5c3cae83eda3f9bd9ec4cee41a0437f253ac5",
+      "zip_sha256": "431b79af129a07050ef263ca98dd32fafc4a040bb7c40d0bf7054be75bbaafb1"
+    },
+    {
+      "sku": "BEA-10",
+      "name": "The 12-Week Reset: Fitness, Habits & Lifestyle Transformation",
+      "pdf_bytes": 187647,
+      "pdf_pages": 43,
+      "zip_bytes": 1285371,
+      "cover_jpg_bytes": 108115,
+      "pdf_sha256": "536cb4bd19d54e35a8ea7918c64ca7e9a7b39e7705af81e37e4d9f4926fa4ad6",
+      "zip_sha256": "bdd98ebf2ad9a8d3efe037d2060a79152e4be862934fda56605fb93c8ef59363"
+    },
+    {
+      "sku": "FIN-01",
+      "name": "The Generational Wealth Blueprint",
+      "pdf_bytes": 247856,
+      "pdf_pages": 60,
+      "zip_bytes": 2043315,
+      "cover_jpg_bytes": 130053,
+      "pdf_sha256": "469f4bfd1016ef5f4b769797e27b3290471ea1ce3ab63d2dcbbaa1ee52cf9f97",
+      "zip_sha256": "b8692725d89f57bf26ce82a063305379458fb134f0deba21050cfa5ea4ad674b"
+    },
+    {
+      "sku": "FIN-02",
+      "name": "First Investor: The Beginner Investing Foundations Course",
+      "pdf_bytes": 292139,
+      "pdf_pages": 42,
+      "zip_bytes": 3406333,
+      "cover_jpg_bytes": 211785,
+      "pdf_sha256": "034c885926933b5a4a906b0e949dd833eb353de689c2a6553b5a53fc9e649f57",
+      "zip_sha256": "fc62a76e926bc405831d1441e15a19ca8b1ea659f0204eb347ef31437527c340"
+    },
+    {
+      "sku": "FIN-03",
+      "name": "The 90-Day Credit Reset System",
+      "pdf_bytes": 272718,
+      "pdf_pages": 37,
+      "zip_bytes": 815961,
+      "cover_jpg_bytes": 203451,
+      "pdf_sha256": "260b6da6e3ca0d729020fa1a5bfd3c8bc97122d6226c47327a31793dcaac3f56",
+      "zip_sha256": "6f9a7621d4fda1fcd98f539aa922e99bda2465a614c0343ea64394b5f16cce9b"
+    },
+    {
+      "sku": "FIN-04",
+      "name": "Debt-Free in 24: The Debt Elimination Workbook & System",
+      "pdf_bytes": 329245,
+      "pdf_pages": 39,
+      "zip_bytes": 3140764,
+      "cover_jpg_bytes": 258789,
+      "pdf_sha256": "e0b84127c5351546a4bb51e2e1ee7d19e0bf187fc4c76b7de89ca09b337e2973",
+      "zip_sha256": "ac917303400a8433b7d7089874f4798c0cb0255a31b6d65ab3c180d4507a4e83"
+    },
+    {
+      "sku": "FIN-05",
+      "name": "Retire on Purpose: The Retirement Planning Masterclass",
+      "pdf_bytes": 178457,
+      "pdf_pages": 46,
+      "zip_bytes": 1407325,
+      "cover_jpg_bytes": 88862,
+      "pdf_sha256": "6e004bca2a14667f00f568e5e544e9d0ccbe5b98f870bf4db28ef2d84a8bae36",
+      "zip_sha256": "a6d90e67deea9b1fbbd16810158b6ad53371cf44b7f791443a49f9531666fa01"
+    },
+    {
+      "sku": "FIN-06",
+      "name": "The Passive Income Builder",
+      "pdf_bytes": 176078,
+      "pdf_pages": 51,
+      "zip_bytes": 361140,
+      "cover_jpg_bytes": 81575,
+      "pdf_sha256": "5c970ed1283dbd71c58ee13ad95af1867bd8532af35d97b87fe8513dd3218c81",
+      "zip_sha256": "792b586df410702836d8cd519a6408a3f91ba61cae8dcc50b10bc65dd6651070"
+    },
+    {
+      "sku": "FIN-07",
+      "name": "Protect Your Family: Wills, Trusts & Estate Planning Essentials",
+      "pdf_bytes": 343470,
+      "pdf_pages": 65,
+      "zip_bytes": 2746530,
+      "cover_jpg_bytes": 222356,
+      "pdf_sha256": "9ead266b8c6a7a4b3a0949ba3af30f563dd075d7115da645e47c3ab8a0607a02",
+      "zip_sha256": "2b1c90a602d68dbfc0b95232adcc5e45b629d282c7290825b86f79b9f9926b68"
+    },
+    {
+      "sku": "FIN-08",
+      "name": "Money Foundations: The Personal Financial Literacy Masterclass",
+      "pdf_bytes": 168133,
+      "pdf_pages": 43,
+      "zip_bytes": 836022,
+      "cover_jpg_bytes": 89581,
+      "pdf_sha256": "0be2de2b351db659c4b58bf92d6cddad3576f962d58b352739a9e4098002f376",
+      "zip_sha256": "6660511ca1b3e8650e498760739c26b6e58e7414bd16689f2ba5bc33e8f54e65"
+    },
+    {
+      "sku": "FIN-09",
+      "name": "The Small Business Money System",
+      "pdf_bytes": 177725,
+      "pdf_pages": 48,
+      "zip_bytes": 1134658,
+      "cover_jpg_bytes": 91099,
+      "pdf_sha256": "89fb4193f35e8cd559891e819120c3ab80ff5169dad08102e7b84ea18f6164ed",
+      "zip_sha256": "c5f79f58b32f6f0b97b9321a4b6ec8d1b9f58b1c380c5763f76aedaf91d7c037"
+    },
+    {
+      "sku": "FIN-10",
+      "name": "Money Smart Teens: Financial Literacy for Teens & Young Adults",
+      "pdf_bytes": 169319,
+      "pdf_pages": 38,
+      "zip_bytes": 1276536,
+      "cover_jpg_bytes": 99594,
+      "pdf_sha256": "5fe4b6b87e02e9bd7f4e881f63e3a0472ace1f0829aee7af128cdf6ec972b302",
+      "zip_sha256": "e4bdc86fd6d7e0be3a891cd407692f242383d437f6940e0a9b39d9a859b42b55"
+    },
+    {
+      "sku": "GRN-01",
+      "name": "The Profitable Urban Farm Blueprint",
+      "pdf_bytes": 210003,
+      "pdf_pages": 40,
+      "zip_bytes": 574381,
+      "cover_jpg_bytes": 135052,
+      "pdf_sha256": "f27954ba32d7ea6ee42fbb482a6c52a5528f54b49dca8a17e42eae20ce384d98",
+      "zip_sha256": "3697feb922f0998b1850de78bece605fdce81228930bcb3029b09be44b8e85c4"
+    },
+    {
+      "sku": "GRN-02",
+      "name": "Solar Savings Masterclass: Design, Price, and Power Your Home",
+      "pdf_bytes": 187628,
+      "pdf_pages": 38,
+      "zip_bytes": 1385265,
+      "cover_jpg_bytes": 115943,
+      "pdf_sha256": "56f6873dfe841105b81a645db2ffb4373b32155f70195dcdbb6e3ac10287349d",
+      "zip_sha256": "1bc25270f828dadd2074553568ddb51cd5e428df2992aede58c08e26283cbc15"
+    },
+    {
+      "sku": "GRN-03",
+      "name": "Green Business Launchpad: Start a Profitable Eco Business in 90 Days",
+      "pdf_bytes": 233718,
+      "pdf_pages": 41,
+      "zip_bytes": 1990708,
+      "cover_jpg_bytes": 153764,
+      "pdf_sha256": "e84a26bf3eaa2c9d40445de9c3caae5cb108c802f8754ca677187c628e8f9012",
+      "zip_sha256": "8d162e7819f871b4332c05827230ebb6fdaade538690534b1aea94ded1c58ad8"
+    },
+    {
+      "sku": "GRN-04",
+      "name": "The Abundant Home Garden: Grow Your Own Food Year-Round",
+      "pdf_bytes": 214233,
+      "pdf_pages": 45,
+      "zip_bytes": 1724942,
+      "cover_jpg_bytes": 126285,
+      "pdf_sha256": "2886daf14c9c98d80dd03c3eeac731dfc598100375399ff295f881402101e3f8",
+      "zip_sha256": "60bad96bb723bc04735d6d87506688a3284232d3f7afdf48ecd1b1555cedd820"
+    },
+    {
+      "sku": "GRN-05",
+      "name": "The Eco Home Product Workshop: Formulate, Package, and Sell Natural Household Products",
+      "pdf_bytes": 222945,
+      "pdf_pages": 43,
+      "zip_bytes": 2137500,
+      "cover_jpg_bytes": 141362,
+      "pdf_sha256": "498a60d0ceb094ee5002747aaf85a49964bbf29af35d12f42bf47327a7d4220a",
+      "zip_sha256": "8f65289414d0bec8bedfbb820da229e1381ae4c410cba6c1bdba8c25a25c9950"
+    },
+    {
+      "sku": "GRN-06",
+      "name": "The Sustainable Fashion Founder: Build an Ethical Clothing Brand",
+      "pdf_bytes": 186296,
+      "pdf_pages": 40,
+      "zip_bytes": 1070632,
+      "cover_jpg_bytes": 107359,
+      "pdf_sha256": "c2bd73444f0738241de6429d0791a161ef9f07d90f92c32a530c541a2d29c0be",
+      "zip_sha256": "b2c313a587bf01e2b5cc77b5d29733102f68e512de386061a224a81cb29f2632"
+    },
+    {
+      "sku": "GRN-07",
+      "name": "Sustainable Packaging Playbook for E-Commerce Brands",
+      "pdf_bytes": 172923,
+      "pdf_pages": 38,
+      "zip_bytes": 1413777,
+      "cover_jpg_bytes": 101833,
+      "pdf_sha256": "409f582e8c31becf4c05bb222f049c03e2c898177cab7573572ff0e6901a51eb",
+      "zip_sha256": "b32456012d519807fc983e4cc842718c4a7963a6ca3876fe9d6ce8882937824e"
+    },
+    {
+      "sku": "GRN-08",
+      "name": "The Sustainable Living Masterclass: Lower Bills, Less Waste, Greener Home",
+      "pdf_bytes": 176474,
+      "pdf_pages": 49,
+      "zip_bytes": 623329,
+      "cover_jpg_bytes": 77738,
+      "pdf_sha256": "3bc598e0c20f1b31460f0e66da23d971961c3d3da0cba125635d3a5916f832b5",
+      "zip_sha256": "e430bfd4b18b60beaab0f53d84fd32498a1e100a8c28e2fdf684234a6e3817ce"
+    },
+    {
+      "sku": "GRN-09",
+      "name": "The Complete Composting System: Turn Waste into Garden Gold",
+      "pdf_bytes": 196086,
+      "pdf_pages": 46,
+      "zip_bytes": 1143866,
+      "cover_jpg_bytes": 107701,
+      "pdf_sha256": "3c0e17e12d9213a1e82e6abc6a072c392964b20d1af93c52ce04e94ad2c4ef22",
+      "zip_sha256": "e51ea08c96e7632c1d524d6706a3e1cb62692854acfd0b0f828428ae35513b7e"
+    },
+    {
+      "sku": "GRN-10",
+      "name": "Recycling Business Starter: Find Your Niche and Launch Profitably",
+      "pdf_bytes": 219250,
+      "pdf_pages": 45,
+      "zip_bytes": 1782059,
+      "cover_jpg_bytes": 132642,
+      "pdf_sha256": "b10de6b6e8052fce4046085b12fc61b5ce86e6e9793ab3c2c86ebec364559e86",
+      "zip_sha256": "72d2c61a82f281208d2fbb03aefc214d73df6a24cc673c49f049493ae8465938"
+    },
+    {
+      "sku": "PET-01",
+      "name": "The Profitable Pet Sitter: Launch Your Dog Walking & Pet Sitting Business in 7 Days",
+      "pdf_bytes": 150465,
+      "pdf_pages": 35,
+      "zip_bytes": 1216488,
+      "cover_jpg_bytes": 83485,
+      "pdf_sha256": "7be41fdcac4bec3ff2bba04e7d4b0cd21fef751ee9c7f3bbd6de5a4f370e8b8b",
+      "zip_sha256": "406a0f51284fc02e7946ab74935fb189ff47f4f5263c47ee6a036177c86282a0"
+    },
+    {
+      "sku": "PET-02",
+      "name": "Pet Business Launchpad: From Idea to Profitable Pet Business",
+      "pdf_bytes": 206159,
+      "pdf_pages": 41,
+      "zip_bytes": 1525731,
+      "cover_jpg_bytes": 128867,
+      "pdf_sha256": "1b7a25e64fd864930e0ee799db33a564d61114ba1869aadd83f114e9a7306e43",
+      "zip_sha256": "58d148319918879b0e06c1cc7906e7daaf1f4a8d03cef1d8b330cda98c3b03d8"
+    },
+    {
+      "sku": "PET-03",
+      "name": "The Professional Dog Trainer Academy",
+      "pdf_bytes": 277901,
+      "pdf_pages": 54,
+      "zip_bytes": 2715323,
+      "cover_jpg_bytes": 171051,
+      "pdf_sha256": "72e9a2e631d38e2435ffa16c1c551d34828db2d591c6ecebe42d3ca22ee2afda",
+      "zip_sha256": "f7f6cc0bd53253f6181d407debb51f23e2b001e332fe97be13b1cab15bac13d7"
+    },
+    {
+      "sku": "PET-04",
+      "name": "The Pet Grooming Business Academy",
+      "pdf_bytes": 191767,
+      "pdf_pages": 43,
+      "zip_bytes": 1784416,
+      "cover_jpg_bytes": 111058,
+      "pdf_sha256": "adb854aca98a6302fd9fe35574d9e3331c9f04f3828a502c0a56ff096bd4afd0",
+      "zip_sha256": "1585129708187cf6de80327e59fece21b5653aaaf68f3fc380f14932ba3dfdc1"
+    },
+    {
+      "sku": "PET-05",
+      "name": "Dog Daycare & Boarding Blueprint: Open and Run a Profitable Daycare & Boarding Business",
+      "pdf_bytes": 200476,
+      "pdf_pages": 46,
+      "zip_bytes": 1520969,
+      "cover_jpg_bytes": 112338,
+      "pdf_sha256": "cb5914725518682e16411512ea9b368c6445f8a017724b488c26f9f3d90d0dff",
+      "zip_sha256": "16038836df5147f22ed655852df50ca2980ac2bc6aed03692cc14bf19191a052"
+    },
+    {
+      "sku": "PET-06",
+      "name": "Pet Business Marketing Mastery: Fill Your Books with Local Customers",
+      "pdf_bytes": 233086,
+      "pdf_pages": 40,
+      "zip_bytes": 1309198,
+      "cover_jpg_bytes": 161930,
+      "pdf_sha256": "326319477e6d9044faeef7573e699e62223b4ddc922095494b2982e005bf1bb6",
+      "zip_sha256": "03608abb88933b0b0715f176cb8547768ea58caf4457b9ad5b3fcfb61c22f332"
+    },
+    {
+      "sku": "PET-07",
+      "name": "The First 16 Weeks: Puppy Training Workbook & Training Guide",
+      "pdf_bytes": 197855,
+      "pdf_pages": 62,
+      "zip_bytes": 1174631,
+      "cover_jpg_bytes": 91359,
+      "pdf_sha256": "99971f95f236c1cbe173c4d48348ae8304d481ffcd3850498a8f8934315a0d9f",
+      "zip_sha256": "d522ed68452b117807c49f579a361624c390088e9fd5a3e0ec5462ae9298fe82"
+    },
+    {
+      "sku": "PET-08",
+      "name": "Pet Nutrition Foundations: Feed Your Dog and Cat for Lifelong Health",
+      "pdf_bytes": 248926,
+      "pdf_pages": 47,
+      "zip_bytes": 2431684,
+      "cover_jpg_bytes": 158530,
+      "pdf_sha256": "e56e9ab9674acf7864653d984ab35d32806016b088241e95486888ae8cad7d09",
+      "zip_sha256": "d0979050fafbea2cc5242ff09b56428ceedb9e2c622318cb0697ba71b7234b05"
+    },
+    {
+      "sku": "PET-09",
+      "name": "Pet Product Brand Builder: From Idea to Shelf-Ready Brand",
+      "pdf_bytes": 214792,
+      "pdf_pages": 41,
+      "zip_bytes": 1561249,
+      "cover_jpg_bytes": 139360,
+      "pdf_sha256": "2531ddb8ab69788e0df530f5b66b72c0d0a78c0b706c5451b266e3739e9bdf63",
+      "zip_sha256": "03f0fc94ef6f6ccb5af87a10985731d02af5e53e5e04db6be8be415e159bebdc"
+    },
+    {
+      "sku": "PET-10",
+      "name": "The Complete Pet Care & Wellness Guide: Everyday Health, Safety, and Happiness",
+      "pdf_bytes": 191185,
+      "pdf_pages": 41,
+      "zip_bytes": 1309839,
+      "cover_jpg_bytes": 111414,
+      "pdf_sha256": "20d91264b8ca7fbeaccb4861e5621bb35bcc0c243ecf500dade56a50870358ba",
+      "zip_sha256": "8f17fb797b9d2f9751753c358e69b63cb119aeb1e35f5d156d5e5775cbe9e226"
+    },
+    {
+      "sku": "RE-01",
+      "name": "The Rental Property Blueprint",
+      "pdf_bytes": 236872,
+      "pdf_pages": 45,
+      "zip_bytes": 634725,
+      "cover_jpg_bytes": 150364,
+      "pdf_sha256": "21efda9fba934c1ce8c1f19a9d8807aa2b126bffb724d8194aa6c8bd810a3513",
+      "zip_sha256": "386778afcecc6459d83ecd327e718290f85cfa2f8d69bff9482a1580b2c0d238"
+    },
+    {
+      "sku": "RE-02",
+      "name": "The Wholesaling Fast-Start Academy",
+      "pdf_bytes": 278884,
+      "pdf_pages": 59,
+      "zip_bytes": 757617,
+      "cover_jpg_bytes": 167377,
+      "pdf_sha256": "c87b594fbe68368d3dfd45c74c28530f7ae1bddfb791683143861f2b4d862105",
+      "zip_sha256": "057cf1bc5194da7794344ee8d2a59cb1037de7bee74636767340b446864a094d"
+    },
+    {
+      "sku": "RE-03",
+      "name": "The Fix-and-Flip Profit System",
+      "pdf_bytes": 379692,
+      "pdf_pages": 51,
+      "zip_bytes": 1295837,
+      "cover_jpg_bytes": 283416,
+      "pdf_sha256": "589264f9b47596f6b3e6deb78843cfc1232234883f6e6fb5e18cef3ca6bea9c2",
+      "zip_sha256": "36031babd9618d0cd186acbf6b3db1797942967bbc39dfb68d737de3c6afc9b2"
+    },
+    {
+      "sku": "RE-04",
+      "name": "The Short-Term Rental Mastery Program",
+      "pdf_bytes": 215337,
+      "pdf_pages": 51,
+      "zip_bytes": 492501,
+      "cover_jpg_bytes": 113008,
+      "pdf_sha256": "016624a7d59c37c3419a11c8cf92ad08767d77f0fba2800b995bae19a6716373",
+      "zip_sha256": "93a63b741794504060c9911687beb93915e60d2b8f23be77b9bb2a6d968800d5"
+    },
+    {
+      "sku": "RE-05",
+      "name": "The Portfolio Builder: From First Property to Financial Freedom",
+      "pdf_bytes": 179734,
+      "pdf_pages": 44,
+      "zip_bytes": 418488,
+      "cover_jpg_bytes": 93782,
+      "pdf_sha256": "de99f85ba2df1d2ccdb19b4cf3b951b964947c3f2bfcbe19f23d2dda1599d279",
+      "zip_sha256": "268efd2f5a44be5d876da1282d21f8647782b5966416979773f750ba00b1c225"
+    },
+    {
+      "sku": "RE-06",
+      "name": "The Commercial Real Estate Investor Masterclass",
+      "pdf_bytes": 307817,
+      "pdf_pages": 64,
+      "zip_bytes": 2093154,
+      "cover_jpg_bytes": 183420,
+      "pdf_sha256": "c02a049c50e8d79671661b7d9919b485f3e81f01e60c1816ddcf4e54f8867e69",
+      "zip_sha256": "f2da99b9af3110aa2114cff0854908a7a2503a84086e44d6a1432a01cdab0288"
+    },
+    {
+      "sku": "RE-07",
+      "name": "The Real Estate Investing Foundations Academy",
+      "pdf_bytes": 216605,
+      "pdf_pages": 49,
+      "zip_bytes": 1734794,
+      "cover_jpg_bytes": 120686,
+      "pdf_sha256": "e8460ac538c6b8b48b261a1c922fe57fe22680a6a1294f8c34c36d961b042351",
+      "zip_sha256": "3dddb8332ba1714ec50bf99de5ba5b529fd41ac5bdeaed58eae0c5892dd26aa1"
+    },
+    {
+      "sku": "RE-08",
+      "name": "The Real Estate Lead Generation Engine",
+      "pdf_bytes": 201030,
+      "pdf_pages": 38,
+      "zip_bytes": 1966284,
+      "cover_jpg_bytes": 137071,
+      "pdf_sha256": "74e2d2e692bd8f5f0ed7056f1a5096635775e8502e1ef26824170bd4ff2feb93",
+      "zip_sha256": "24fa8df29588df6e80414fa911c78f5e1d83528cade4007dc431f657720b9b13"
+    },
+    {
+      "sku": "RE-09",
+      "name": "The Property Management Business System",
+      "pdf_bytes": 213591,
+      "pdf_pages": 49,
+      "zip_bytes": 540820,
+      "cover_jpg_bytes": 121042,
+      "pdf_sha256": "36e30de1943385a3a0038b975b37709dd5570908d59c9b36af67fe9a0fb6d2ed",
+      "zip_sha256": "44e8e1e40cb7250f7b5935c81ab0e5ce5c769bf368e4f55accb3ce5a056eb202"
+    },
+    {
+      "sku": "RE-10",
+      "name": "The Deal Analyzer Pro Toolkit",
+      "pdf_bytes": 210476,
+      "pdf_pages": 37,
+      "zip_bytes": 2176098,
+      "cover_jpg_bytes": 142490,
+      "pdf_sha256": "462a96485a9c010da414703ae2068e9e6351a5aaf6b2f1eac7b8597c29a9e7f8",
+      "zip_sha256": "62ea1e39ac61529a0436a8826510823a27578d56caa0cbf16ae156dd095c31be"
+    }
+  ],
+  "totals": {
+    "products": 50,
+    "pdf_bytes": 11066954,
+    "zip_bytes": 76240617,
+    "cover_jpg_bytes": 6821564,
+    "total_bytes": 94129135
+  }
+}
