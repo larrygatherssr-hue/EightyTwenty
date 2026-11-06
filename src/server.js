@@ -294,9 +294,10 @@ app.post('/sell', async (req, res) => {
   }
   try {
     // Accounts v2 (see src/onboarding.js): dashboard express; fees + losses
-    // collected by the application; recipient configuration only — the
-    // platform is the merchant of record, so sellers need no merchant /
-    // card_payments capability.
+    // collected by the application; recipient stripe_transfers PLUS merchant
+    // card_payments (requested, never used — the live API requires it
+    // alongside transfers for this platform). The platform stays merchant
+    // of record on destination charges.
     let accountId = seller.stripe_account_id;
     if (!accountId) {
       const account = await createSellerAccount(stripe, seller);

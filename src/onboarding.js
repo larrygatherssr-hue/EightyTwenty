@@ -94,7 +94,10 @@ async function createOnboardingLink(stripe, seller, baseUrl) {
     use_case: {
       type: 'account_onboarding',
       account_onboarding: {
-        configurations: ['recipient'],
+        // Must match the configurations applied to the account (recipient +
+        // merchant — see createSellerAccount). Listing only 'recipient'
+        // fails with "You must correctly specify the applied configurations".
+        configurations: ['recipient', 'merchant'],
         refresh_url: `${baseUrl}/sell/refresh?seller=${seller.id}`,
         return_url: `${baseUrl}/sell/return?seller=${seller.id}`,
       },
